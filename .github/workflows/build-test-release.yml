@@ -8,13 +8,12 @@ on:
     branches: [ main ]
 
 env:
-  RUNS_ON: "ubuntu-latest"
   GO_VERSION: "1.23"
 
 jobs:
   test:
     name: Run Tests
-    runs-on: ${{ env.RUNS_ON }}
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -29,7 +28,7 @@ jobs:
   release:
     name: Release with GoReleaser
     needs: test
-    runs-on: ${{ env.RUNS_ON }}
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Check out code

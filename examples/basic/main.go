@@ -24,8 +24,8 @@ func main() {
 			"quota": [
 				{
 					"Devices": ["/dev/sda"],
-					"ThrottleReadIOPS": 1000,
-					"ThrottleWriteIOPS": 800,
+					"ThrottleReadIOPS": "1000",
+					"ThrottleWriteIOPS": "800",
 					"ThrottleReadBps": "50M",
 					"ThrottleWriteBps": "30M"
 				}
