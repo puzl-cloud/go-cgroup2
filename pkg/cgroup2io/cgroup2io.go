@@ -170,52 +170,28 @@ func ApplyIOLimits(cgroupPath string, config *Config) error {
 	return nil
 }
 
-// ApplyDeviceIOLimits applies IO limits for a specific device
 func ApplyDeviceIOLimits(cgroupPath, deviceNumbers string, readBps, writeBps, readIOPS, writeIOPS int64) error {
+	// In cgroup v2, we use io.max to set limits
 	ioMaxPath := filepath.Join(cgroupPath, "io.max")
 
-	// Read current IO limits
-	content, err := os.ReadFile(ioMaxPath)
-	if err != nil {
-		return fmt.Errorf("failed to read %s: %w", ioMaxPath, err)
-	}
-
-	lines := strings.Split(string(content), "\n")
-	newLines := []string{}
-	deviceFound := false
-
-	// Format new limit values for the device
+	// Format the limit string for the device
+	// Format: "<major>:<minor> rbps=<bytes> wbps=<bytes> riops=<iops> wiops=<iops>"
+	// For "max" values, use "max" string instead of the numeric value
 	rbpsStr := formatMaxOrValue(readBps)
 	wbpsStr := formatMaxOrValue(writeBps)
 	riopsStr := formatMaxOrValue(readIOPS)
 	wiopsStr := formatMaxOrValue(writeIOPS)
 
-	newLimit := fmt.Sprintf("%s rbps=%s wbps=%s riops=%s wiops=%s",
+	ioMaxValue := fmt.Sprintf("%s rbps=%s wbps=%s riops=%s wiops=%s",
 		deviceNumbers, rbpsStr, wbpsStr, riopsStr, wiopsStr)
 
-	// Update existing limits if the device is already configured
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-
-		parts := strings.Fields(line)
-		if len(parts) > 0 && parts[0] == deviceNumbers {
-			newLines = append(newLines, newLimit)
-			deviceFound = true
-		} else {
-			newLines = append(newLines, line)
-		}
+	// Write limits to io.max file
+	err := os.WriteFile(ioMaxPath, []byte(ioMaxValue), 0)
+	if err != nil {
+		return fmt.Errorf("failed to write limits to %s: %w", ioMaxPath, err)
 	}
 
-	// Add new device configuration if not found in existing settings
-	if !deviceFound {
-		newLines = append(newLines, newLimit)
-	}
-
-	// Write back all configurations to io.max
-	// Note: No need to specify permissions as the file already exists
-	return os.WriteFile(ioMaxPath, []byte(strings.Join(newLines, "\n")), 0)
+	return nil
 }
 
 // formatMaxOrValue converts MaxInt64Value to "max" string or returns the numeric value
