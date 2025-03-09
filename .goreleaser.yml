@@ -1,3 +1,5 @@
+version: 2
+
 before:
   hooks:
     - go mod tidy
@@ -17,7 +19,7 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
 
 archives:
-  - format: binary
+  - format: [ 'binary' ]
 
 checksum:
   name_template: 'checksums.txt'
